@@ -16,8 +16,8 @@ public abstract class Piece {
     /** Current position of the piece. */
     protected Position position;
 
-    /** Character used to show the piece on the board. */
-    protected char symbol;
+    /** Text used to show the piece on the board. */
+    protected String symbol;
 
     /**
      * Creates a piece with a color, position, and symbol.
@@ -26,7 +26,7 @@ public abstract class Piece {
      * @param position starting position
      * @param symbol board symbol
      */
-    public Piece(String color, Position position, char symbol) {
+    public Piece(String color, Position position, String symbol) {
         this.color = color;
         this.position = position;
         this.symbol = symbol;
@@ -60,11 +60,11 @@ public abstract class Piece {
     }
 
     /**
-     * Gets the character used to display the piece.
+     * Gets the text used to display the piece.
      *
      * @return piece symbol
      */
-    public char getSymbol() {
+    public String getSymbol() {
         return symbol;
     }
 

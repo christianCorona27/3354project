@@ -17,7 +17,7 @@ public class Bishop extends Piece {
      * @param position starting position
      */
     public Bishop(String color, Position position) {
-        super(color, position, color.equals("white") ? 'B' : 'b');
+        super(color, position, color.equals("white") ? 'wB' : 'bB');
     }
 
     /**

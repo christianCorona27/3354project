@@ -74,7 +74,7 @@ public class Board {
     /**
      * Prints the board to the console.
      */
-    public void displayBoard() {
+public void displayBoard() {
         System.out.println("  A B C D E F G H");
         for (int row = 0; row < 8; row++) {
             System.out.print(8 - row + " ");
@@ -88,6 +88,7 @@ public class Board {
             System.out.println();
         }
     }
+
 
     /**
      * Moves a piece from one position to another.

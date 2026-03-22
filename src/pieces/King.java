@@ -17,7 +17,7 @@ public class King extends Piece {
      * @param position starting position
      */
     public King(String color, Position position) {
-        super(color, position, color.equals("white") ? 'K' : 'k');
+        super(color, position, color.equals("white") ? 'wK' : 'bK');
     }
 
     /**

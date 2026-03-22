@@ -17,7 +17,7 @@ public class Knight extends Piece {
      * @param position starting position
      */
     public Knight(String color, Position position) {
-        super(color, position, color.equals("white") ? 'N' : 'n');
+        super(color, position, color.equals("white") ? 'wN' : 'bn');
     }
 
     /**

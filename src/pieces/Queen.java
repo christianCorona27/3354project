@@ -17,7 +17,7 @@ public class Queen extends Piece {
      * @param position starting position
      */
     public Queen(String color, Position position) {
-        super(color, position, color.equals("white") ? 'Q' : 'q');
+        super(color, position, color.equals("white") ? 'wQ' : 'bQ');
     }
 
     /**

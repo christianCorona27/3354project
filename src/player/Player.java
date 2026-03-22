@@ -74,4 +74,11 @@ public class Player {
     public void removePiece(Piece piece) {
         activePieces.remove(piece);
     }
+/**
+ * Placeholder method for making a move.
+ * The game loop currently handles move input.
+ */
+public void makeMove() {
+    // Move handling is controlled in the Game class for this phase.
+}
 }

@@ -16,10 +16,9 @@ public class Pawn extends Piece {
      * @param color pawn color
      * @param position starting position
      */
-    public Pawn(String color, Position position) {
-        super(color, position, color.equals("white") ? 'P' : 'p');
-    }
-
+   public Pawn(String color, Position position) {
+    super(color, position, color.equals("white") ? "wp" : "bp");
+}
     /**
      * Finds all possible moves for the pawn.
      *
