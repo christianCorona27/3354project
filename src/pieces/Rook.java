@@ -17,7 +17,7 @@ public class Rook extends Piece {
      * @param position starting position
      */
     public Rook(String color, Position position) {
-        super(color, position, color.equals("white") ? 'wR' : 'br');
+        super(color, position, color.equals("white") ? "wR" : "bR");
     }
 
     /**

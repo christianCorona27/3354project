@@ -75,21 +75,19 @@ public class Board {
      * Prints the board to the console.
      */
 public void displayBoard() {
-        System.out.println("  A B C D E F G H");
-        for (int row = 0; row < 8; row++) {
-            System.out.print(8 - row + " ");
-            for (int col = 0; col < 8; col++) {
-                if (grid[row][col] == null) {
-                    System.out.print(". ");
-                } else {
-                    System.out.print(grid[row][col].getSymbol() + " ");
-                }
+    System.out.println("   A   B   C   D   E   F   G   H");
+    for (int row = 0; row < 8; row++) {
+        System.out.print((8 - row) + " ");
+        for (int col = 0; col < 8; col++) {
+            if (grid[row][col] == null) {
+                System.out.print(" ## ");
+            } else {
+                System.out.print(" " + grid[row][col].getSymbol() + " ");
             }
-            System.out.println();
         }
+        System.out.println();
     }
-
-
+}
     /**
      * Moves a piece from one position to another.
      *

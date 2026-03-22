@@ -5,26 +5,19 @@ import utils.Position;
 import board.Board;
 
 /**
- * Parent class for every chess piece.
- * Each piece has a color, position, and board symbol.
+ * Abstract base class for all chess pieces.
  */
 public abstract class Piece {
-
-    /** Color of the piece. */
     protected String color;
-
-    /** Current position of the piece. */
     protected Position position;
-
-    /** Text used to show the piece on the board. */
     protected String symbol;
 
     /**
-     * Creates a piece with a color, position, and symbol.
+     * Creates a piece with a color, board position, and display symbol.
      *
-     * @param color piece color
-     * @param position starting position
-     * @param symbol board symbol
+     * @param color the piece color
+     * @param position the piece position
+     * @param symbol the text symbol used for board display
      */
     public Piece(String color, Position position, String symbol) {
         this.color = color;
@@ -32,47 +25,21 @@ public abstract class Piece {
         this.symbol = symbol;
     }
 
-    /**
-     * Gets the piece color.
-     *
-     * @return piece color
-     */
     public String getColor() {
         return color;
     }
 
-    /**
-     * Gets the current position.
-     *
-     * @return current position
-     */
     public Position getPosition() {
         return position;
     }
 
-    /**
-     * Updates the current position.
-     *
-     * @param position new position
-     */
     public void setPosition(Position position) {
         this.position = position;
     }
 
-    /**
-     * Gets the text used to display the piece.
-     *
-     * @return piece symbol
-     */
     public String getSymbol() {
         return symbol;
     }
 
-    /**
-     * Returns all legal moves for this piece.
-     *
-     * @param board current board
-     * @return list of possible moves
-     */
     public abstract List<Position> getPossibleMoves(Board board);
 }
