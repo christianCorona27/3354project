@@ -22,21 +22,23 @@ turns between white and black.
 Run this from the project root:
 
 Features Implemented
-8x8 board representation
-initial chess board setup
-abstract Piece superclass
-separate piece subclasses
-text-based board display
-move input parsing
-turn switching
-basic movement validation for pieces
+- 8x8 board representation
+- initial chess board setup
+- abstract Piece superclass
+- separate piece subclasses
+- text-based board display
+- move input parsing
+- turn switching
+- basic movement validation for pieces
+
+
 Not Yet Implemented
-check
-checkmate
-castling
-en passant
-pawn promotion
-full game-over conditions
+- check
+- checkmate
+- castling
+- en passant
+- pawn promotion
+- full game-over conditions
 
 ```bash
 mkdir -p out
