@@ -26,3 +26,15 @@ public class Board {
 		}
 	}
 }
+public void displayBoard(){
+	System.out,println(" A B C D E F G H");
+	for(int r = 0; r < 8; r++ ){
+		System.out.print( 8 - r + " ");
+		for (int c = 0; c < 8; c++){
+		if (grid [r][c] == null) System.out.print(". ");
+		else System.out.print(grid[r][c].getSymbol() + " ");
+
+		}
+		System.out.println();
+	}
+}
