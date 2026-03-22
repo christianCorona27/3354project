@@ -1,5 +1,6 @@
 package game;
 
+import java.util.List;
 import java.util.Scanner;
 import board.Board;
 import pieces.Piece;
@@ -51,33 +52,55 @@ public class Game {
                 continue;
             }
 
+            if (!isLegalMove(piece, to)) {
+                System.out.println("Illegal move for that piece.");
+                continue;
+            }
+
             boolean moved = board.movePiece(from, to);
             if (!moved) {
                 System.out.println("Move failed.");
                 continue;
             }
 
-            // switch turn
             currentTurn = currentTurn.equals("white") ? "black" : "white";
         }
 
         scanner.close();
     }
 
+    private boolean isLegalMove(Piece piece, Position to) {
+        List<Position> possibleMoves = piece.getPossibleMoves(board);
+
+        for (Position move : possibleMoves) {
+            if (move.getRow() == to.getRow() && move.getCol() == to.getCol()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private Position[] parseMove(String input) {
         String[] parts = input.split(" ");
-        if (parts.length != 2) return null;
+        if (parts.length != 2) {
+            return null;
+        }
 
         Position from = parseSquare(parts[0]);
         Position to = parseSquare(parts[1]);
 
-        if (from == null || to == null) return null;
+        if (from == null || to == null) {
+            return null;
+        }
 
         return new Position[]{from, to};
     }
 
     private Position parseSquare(String square) {
-        if (square.length() != 2) return null;
+        if (square.length() != 2) {
+            return null;
+        }
 
         char file = Character.toUpperCase(square.charAt(0));
         char rank = square.charAt(1);

@@ -1,6 +1,7 @@
 package pieces;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import utils.Position;
 import board.Board;
 
@@ -9,7 +10,40 @@ public class Queen extends Piece {
         super(color, position, color.equals("white") ? 'Q' : 'q');
     }
 
+    @Override
     public List<Position> getPossibleMoves(Board board) {
-        return new ArrayList<>();
+        List<Position> moves = new ArrayList<>();
+        int row = position.getRow();
+        int col = position.getCol();
+
+        addDirection(board, moves, row, col, -1, 0);
+        addDirection(board, moves, row, col, 1, 0);
+        addDirection(board, moves, row, col, 0, -1);
+        addDirection(board, moves, row, col, 0, 1);
+
+        addDirection(board, moves, row, col, -1, -1);
+        addDirection(board, moves, row, col, -1, 1);
+        addDirection(board, moves, row, col, 1, -1);
+        addDirection(board, moves, row, col, 1, 1);
+
+        return moves;
+    }
+
+    private void addDirection(Board board, List<Position> moves, int row, int col, int dRow, int dCol) {
+        int r = row + dRow;
+        int c = col + dCol;
+
+        while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+            if (board.getPiece(r, c) == null) {
+                moves.add(new Position(r, c));
+            } else {
+                if (!board.getPiece(r, c).getColor().equals(this.color)) {
+                    moves.add(new Position(r, c));
+                }
+                break;
+            }
+            r += dRow;
+            c += dCol;
+        }
     }
 }
