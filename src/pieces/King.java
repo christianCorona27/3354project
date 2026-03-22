@@ -5,11 +5,27 @@ import java.util.List;
 import utils.Position;
 import board.Board;
 
+/**
+ * Represents a king.
+ */
 public class King extends Piece {
+
+    /**
+     * Creates a king.
+     *
+     * @param color king color
+     * @param position starting position
+     */
     public King(String color, Position position) {
         super(color, position, color.equals("white") ? 'K' : 'k');
     }
 
+    /**
+     * Finds all possible moves for the king.
+     *
+     * @param board current board
+     * @return list of king moves
+     */
     @Override
     public List<Position> getPossibleMoves(Board board) {
         List<Position> moves = new ArrayList<>();

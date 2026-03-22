@@ -5,11 +5,27 @@ import java.util.List;
 import utils.Position;
 import board.Board;
 
+/**
+ * Represents a bishop.
+ */
 public class Bishop extends Piece {
+
+    /**
+     * Creates a bishop.
+     *
+     * @param color bishop color
+     * @param position starting position
+     */
     public Bishop(String color, Position position) {
         super(color, position, color.equals("white") ? 'B' : 'b');
     }
 
+    /**
+     * Finds all possible moves for the bishop.
+     *
+     * @param board current board
+     * @return list of bishop moves
+     */
     @Override
     public List<Position> getPossibleMoves(Board board) {
         List<Position> moves = new ArrayList<>();
@@ -24,6 +40,16 @@ public class Bishop extends Piece {
         return moves;
     }
 
+    /**
+     * Adds moves in one diagonal direction until blocked.
+     *
+     * @param board current board
+     * @param moves move list
+     * @param row current row
+     * @param col current column
+     * @param dRow row change
+     * @param dCol column change
+     */
     private void addDirection(Board board, List<Position> moves, int row, int col, int dRow, int dCol) {
         int r = row + dRow;
         int c = col + dCol;
@@ -40,5 +66,6 @@ public class Bishop extends Piece {
             r += dRow;
             c += dCol;
         }
+
     }
 }

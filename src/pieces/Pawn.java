@@ -5,11 +5,27 @@ import java.util.List;
 import utils.Position;
 import board.Board;
 
+/**
+ * Represents a pawn.
+ */
 public class Pawn extends Piece {
+
+    /**
+     * Creates a pawn.
+     *
+     * @param color pawn color
+     * @param position starting position
+     */
     public Pawn(String color, Position position) {
         super(color, position, color.equals("white") ? 'P' : 'p');
     }
 
+    /**
+     * Finds all possible moves for the pawn.
+     *
+     * @param board current board
+     * @return list of pawn moves
+     */
     @Override
     public List<Position> getPossibleMoves(Board board) {
         List<Position> moves = new ArrayList<>();
@@ -43,15 +59,15 @@ public class Pawn extends Piece {
 
         if (oneStepRow >= 0 && oneStepRow < 8) {
             if (leftDiagCol >= 0) {
-                if (board.getPiece(oneStepRow, leftDiagCol) != null &&
-                    !board.getPiece(oneStepRow, leftDiagCol).getColor().equals(this.color)) {
+                Piece leftPiece = board.getPiece(oneStepRow, leftDiagCol);
+                if (leftPiece != null && !leftPiece.getColor().equals(color)) {
                     moves.add(new Position(oneStepRow, leftDiagCol));
                 }
             }
 
             if (rightDiagCol < 8) {
-                if (board.getPiece(oneStepRow, rightDiagCol) != null &&
-                    !board.getPiece(oneStepRow, rightDiagCol).getColor().equals(this.color)) {
+                Piece rightPiece = board.getPiece(oneStepRow, rightDiagCol);
+                if (rightPiece != null && !rightPiece.getColor().equals(color)) {
                     moves.add(new Position(oneStepRow, rightDiagCol));
                 }
             }

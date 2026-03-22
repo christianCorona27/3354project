@@ -5,11 +5,27 @@ import java.util.List;
 import utils.Position;
 import board.Board;
 
+/**
+ * Represents a knight.
+ */
 public class Knight extends Piece {
+
+    /**
+     * Creates a knight.
+     *
+     * @param color knight color
+     * @param position starting position
+     */
     public Knight(String color, Position position) {
         super(color, position, color.equals("white") ? 'N' : 'n');
     }
 
+    /**
+     * Finds all possible moves for the knight.
+     *
+     * @param board current board
+     * @return list of knight moves
+     */
     @Override
     public List<Position> getPossibleMoves(Board board) {
         List<Position> moves = new ArrayList<>();
