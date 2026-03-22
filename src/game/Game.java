@@ -2,6 +2,7 @@ package game;
 
 import java.util.Scanner;
 import board.Board;
+import pieces.Piece;
 import utils.Position;
 
 public class Game {
@@ -21,6 +22,7 @@ public class Game {
             board.displayBoard();
             System.out.println(currentTurn + "'s turn.");
             System.out.print("Enter move (example: E2 E4) or type quit: ");
+
             String input = scanner.nextLine().trim();
 
             if (input.equalsIgnoreCase("quit")) {
@@ -34,8 +36,29 @@ public class Game {
                 continue;
             }
 
-            System.out.println("Parsed move from (" + move[0].getRow() + "," + move[0].getCol() +
-                    ") to (" + move[1].getRow() + "," + move[1].getCol() + ")");
+            Position from = move[0];
+            Position to = move[1];
+
+            Piece piece = board.getPiece(from.getRow(), from.getCol());
+
+            if (piece == null) {
+                System.out.println("No piece at starting square.");
+                continue;
+            }
+
+            if (!piece.getColor().equals(currentTurn)) {
+                System.out.println("That is not your piece.");
+                continue;
+            }
+
+            boolean moved = board.movePiece(from, to);
+            if (!moved) {
+                System.out.println("Move failed.");
+                continue;
+            }
+
+            // switch turn
+            currentTurn = currentTurn.equals("white") ? "black" : "white";
         }
 
         scanner.close();
@@ -43,24 +66,18 @@ public class Game {
 
     private Position[] parseMove(String input) {
         String[] parts = input.split(" ");
-        if (parts.length != 2) {
-            return null;
-        }
+        if (parts.length != 2) return null;
 
         Position from = parseSquare(parts[0]);
         Position to = parseSquare(parts[1]);
 
-        if (from == null || to == null) {
-            return null;
-        }
+        if (from == null || to == null) return null;
 
         return new Position[]{from, to};
     }
 
     private Position parseSquare(String square) {
-        if (square.length() != 2) {
-            return null;
-        }
+        if (square.length() != 2) return null;
 
         char file = Character.toUpperCase(square.charAt(0));
         char rank = square.charAt(1);
