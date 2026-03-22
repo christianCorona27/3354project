@@ -21,6 +21,23 @@ turns between white and black.
 ## How to Compile
 Run this from the project root:
 
+Features Implemented
+8x8 board representation
+initial chess board setup
+abstract Piece superclass
+separate piece subclasses
+text-based board display
+move input parsing
+turn switching
+basic movement validation for pieces
+Not Yet Implemented
+check
+checkmate
+castling
+en passant
+pawn promotion
+full game-over conditions
+
 ```bash
 mkdir -p out
 javac -d out src/Main.java src/board/*.java src/game/*.java src/pieces/*.java src/player/*.java src/utils/*.java
