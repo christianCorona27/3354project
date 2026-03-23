@@ -21,12 +21,15 @@ src/
 
 ## How to Compile
 Run this from the project root directory:
-bashmkdir -p out
+```bash
+mkdir -p out
 javac -d out src/Main.java src/board/*.java src/game/*.java src/pieces/*.java src/player/*.java src/utils/*.java
+```
 
 ## How to Run
-  bashjava -cp out Main
-
+```bash
+java -cp out Main
+```
 
 ## How to Play
 Enter moves in the format [FROM] [TO] using standard chess notation:
