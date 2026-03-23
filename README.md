@@ -2,26 +2,39 @@
 
 ## Overview
 This project implements Phase 1 of a Java command-line chess backend.
-
-The program displays a text-based chess board, initializes the starting pieces,
-accepts moves in coordinate format, updates the board, and switches
-turns between white and black.
+A console-based chess game written in Java. Two players take turns entering moves
+in standard chess notation. The board is displayed after every move, and the game
+validates each move before accepting it.
 
 ## Requirements
 - Java 17 or later
 - Git Bash, terminal, or any Java IDE
 
 ## Project Structure
-- `src/board` - board representation and board operations
-- `src/game` - game loop and move input handling
-- `src/pieces` - chess piece superclass and subclasses
-- `src/player` - player data
-- `src/utils` - helper classes such as board positions
+src/
+├── Main.java
+├── board/      Board representation and move execution
+├── game/       Game loop and input handling
+├── pieces/     Abstract Piece class and all six subclasses
+├── player/     Player data
+└── utils/      Position helper class
 
 ## How to Compile
-Run this from the project root:
+Run this from the project root directory:
+bashmkdir -p out
+javac -d out src/Main.java src/board/*.java src/game/*.java src/pieces/*.java src/player/*.java src/utils/*.java
 
-Features Implemented
+## How to Run
+  bashjava -cp out Main
+
+
+## How to Play
+Enter moves in the format [FROM] [TO] using standard chess notation:
+E2 E4     moves the piece at E2 to E4
+A2 A4     moves the pawn forward two squares
+Type quit at any time to exit the game.
+
+## Features Implemented
 - 8x8 board representation
 - initial chess board setup
 - abstract Piece superclass
@@ -32,22 +45,24 @@ Features Implemented
 - basic movement validation for pieces
 
 
-Not Yet Implemented
-- check
-- checkmate
+## Not Yet Implemented
+- checkmate/ stalemate detection
+- check detection
 - castling
 - en passant
 - pawn promotion
-- full game-over conditions
+- Full Game-Over conditions
 
-```bash
-mkdir -p out
-javac -d out src/Main.java src/board/*.java src/game/*.java src/pieces/*.java src/player/*.java src/utils/*.java
+Example Session
+   A   B   C   D   E   F   G   H
+8  bR  bN  bB  bQ  bK  bB  bN  bR
+7  bp  bp  bp  bp  bp  bp  bp  bp
+6  ##  ##  ##  ##  ##  ##  ##  ##
+5  ##  ##  ##  ##  ##  ##  ##  ##
+4  ##  ##  ##  ##  ##  ##  ##  ##
+3  ##  ##  ##  ##  ##  ##  ##  ##
+2  wp  wp  wp  wp  wp  wp  wp  wp
+1  wR  wN  wB  wQ  wK  wB  wN  wR
 
-## How to Run
-java -cp out Main
-
-##Controls
-Enter moves in this format:
-Ex : E2 E4
-to exit : quit
+white's turn.
+Enter move (example: E2 E4) or type quit: E2 E4
