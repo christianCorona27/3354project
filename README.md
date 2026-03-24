@@ -13,10 +13,15 @@ validates each move before accepting it.
 ## Project Structure
 src/
 ├── Main.java
+
 ├── board/      Board representation and move execution
+
 ├── game/       Game loop and input handling
+
 ├── pieces/     Abstract Piece class and all six subclasses
+
 ├── player/     Player data
+
 └── utils/      Position helper class
 
 ## How to Compile
@@ -57,14 +62,23 @@ Type quit at any time to exit the game.
 - Full Game-Over conditions
 
 Example Session
+   
    A   B   C   D   E   F   G   H
+
 8  bR  bN  bB  bQ  bK  bB  bN  bR
+
 7  bp  bp  bp  bp  bp  bp  bp  bp
+
 6  ##  ##  ##  ##  ##  ##  ##  ##
+
 5  ##  ##  ##  ##  ##  ##  ##  ##
+
 4  ##  ##  ##  ##  ##  ##  ##  ##
+
 3  ##  ##  ##  ##  ##  ##  ##  ##
+
 2  wp  wp  wp  wp  wp  wp  wp  wp
+
 1  wR  wN  wB  wQ  wK  wB  wN  wR
 
 white's turn.
