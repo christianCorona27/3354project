@@ -44,6 +44,8 @@ public class Board {
      * Sets up the pieces in their starting positions.
      */
     public void initializeBoard() {
+        grid = new Piece[8][8];
+
         for (int col = 0; col < 8; col++) {
             grid[1][col] = new Pawn("black", new Position(1, col));
             grid[6][col] = new Pawn("white", new Position(6, col));
@@ -74,20 +76,21 @@ public class Board {
     /**
      * Prints the board to the console.
      */
-public void displayBoard() {
-    System.out.println("   A   B   C   D   E   F   G   H");
-    for (int row = 0; row < 8; row++) {
-        System.out.print((8 - row) + " ");
-        for (int col = 0; col < 8; col++) {
-            if (grid[row][col] == null) {
-                System.out.print(" ## ");
-            } else {
-                System.out.print(" " + grid[row][col].getSymbol() + " ");
+    public void displayBoard() {
+        System.out.println("   A   B   C   D   E   F   G   H");
+        for (int row = 0; row < 8; row++) {
+            System.out.print((8 - row) + " ");
+            for (int col = 0; col < 8; col++) {
+                if (grid[row][col] == null) {
+                    System.out.print(" ## ");
+                } else {
+                    System.out.print(" " + grid[row][col].getSymbol() + " ");
+                }
             }
+            System.out.println();
         }
-        System.out.println();
     }
-}
+
     /**
      * Moves a piece from one position to another.
      *
@@ -100,7 +103,56 @@ public void displayBoard() {
         setPiece(from.getRow(), from.getCol(), null);
 
         if (piece != null) {
-            piece.setPosition(to);
+            piece.setPosition(new Position(to.getRow(), to.getCol()));
         }
     }
+
+    /**
+     * Creates a copy of the board for undo support.
+     *
+     * @return copied board
+     */
+    public Board copyBoard() {
+        Board copy = new Board();
+
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece piece = grid[row][col];
+                if (piece != null) {
+                    copy.setPiece(row, col, clonePiece(piece, row, col));
+                }
+            }
+        }
+
+        return copy;
+    }
+
+    /**
+     * Makes a copy of a piece.
+     *
+     * @param piece piece to clone
+     * @param row new row
+     * @param col new col
+     * @return copied piece
+     */
+    private Piece clonePiece(Piece piece, int row, int col) {
+        Position newPos = new Position(row, col);
+
+        if (piece instanceof Pawn) {
+            return new Pawn(piece.getColor(), newPos);
+        } else if (piece instanceof Rook) {
+            return new Rook(piece.getColor(), newPos);
+        } else if (piece instanceof Knight) {
+            return new Knight(piece.getColor(), newPos);
+        } else if (piece instanceof Bishop) {
+            return new Bishop(piece.getColor(), newPos);
+        } else if (piece instanceof Queen) {
+            return new Queen(piece.getColor(), newPos);
+        } else if (piece instanceof King) {
+            return new King(piece.getColor(), newPos);
+        }
+
+        return null;
+    }
 }
+
