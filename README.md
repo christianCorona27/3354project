@@ -1,4 +1,4 @@
-# 3354project - Chess Backend
+# 3354project - Chess Game Gui
 
 ## Overview
 This project implements Phase 1 of a Java command-line chess backend.
@@ -13,28 +13,23 @@ validates each move before accepting it.
 ## Project Structure
 src/
 ├── Main.java
-
 ├── board/      Board representation and move execution
-
-├── game/       Game loop and input handling
-
-├── pieces/     Abstract Piece class and all six subclasses
-
+├── game/       Game logic
+├── gui/        GUI classes for board display and interaction
+├── pieces/     Abstract Piece class and piece subclasses
 ├── player/     Player data
-
 └── utils/      Position helper class
 
 ## How to Compile
 Run this from the project root directory:
+
 ```bash
 mkdir -p out
-javac -d out src/Main.java src/board/*.java src/game/*.java src/pieces/*.java src/player/*.java src/utils/*.java
-```
+javac -d out src/Main.java src/board/*.java src/game/*.java src/gui/*.java src/pieces/*.java src/player/*.java src/utils/*.java
 
 ## How to Run
 ```bash
-java -cp out Main
-```
+java -cp out Main```
 
 ## How to Play
 Enter moves in the format [FROM] [TO] using standard chess notation:
@@ -47,19 +42,25 @@ Type quit at any time to exit the game.
 - initial chess board setup
 - abstract Piece superclass
 - separate piece subclasses
-- text-based board display
-- move input parsing
+- move validation
 - turn switching
-- basic movement validation for pieces
 
+## NEW (Phase 2 GUI)
+- graphical chess board (GUI)
+- drag-and-drop movement
+- undo system
+- save game
+- load game
+- captured pieces display
+- unicode chess pieces
+- customizable board colors
+- adjustable square size
 
-## Not Yet Implemented
-- checkmate/ stalemate detection
-- check detection
-- castling
-- en passant
-- pawn promotion
-- Full Game-Over conditions
+## NOT YET Implemented
+- Check/checkmate/ stalemate detection
+- Castling
+- Enpassant
+- Pawn Promotion
 
 Example Session
    
