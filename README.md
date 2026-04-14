@@ -30,7 +30,8 @@ javac -d out src/Main.java src/board/*.java src/game/*.java src/gui/*.java src/p
 
 ## How to Run
 ```bash
-java -cp out Main```
+java -cp out Main
+```
 
 ## How to Play
 Enter moves in the format [FROM] [TO] using standard chess notation:
