@@ -13,11 +13,17 @@ validates each move before accepting it.
 ## Project Structure
 src/
 ├── Main.java
+
 ├── board/      Board representation and move execution
+
 ├── game/       Game logic
+
 ├── gui/        GUI classes for board display and interaction
+
 ├── pieces/     Abstract Piece class and piece subclasses
+
 ├── player/     Player data
+
 └── utils/      Position helper class
 
 ## How to Compile
