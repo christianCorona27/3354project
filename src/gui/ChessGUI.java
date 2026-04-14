@@ -36,6 +36,7 @@ public class ChessGUI extends JFrame {
     private JTextArea moveHistoryArea;
     private JPanel whiteCapturedPanel;
     private JPanel blackCapturedPanel;
+    private JPanel sidePanel;
 
     // ── Settings
     private Color lightSquareColor = new Color(240, 217, 181);
@@ -214,6 +215,7 @@ public class ChessGUI extends JFrame {
      */
     private JPanel createSidePanel() {
         JPanel side = new JPanel(new BorderLayout(5, 5));
+        JPanel side = sidePanel;
         side.setPreferredSize(new Dimension(240, squareSize * 8));
         side.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
@@ -647,6 +649,7 @@ public class ChessGUI extends JFrame {
                 setSquareColor(btn, r, c);
             }
         }
+        sidePanel.setPreferredSize(new Dimension(240, squareSize * 8));
         refreshBoard();
         pack();
     }
@@ -674,9 +677,7 @@ public class ChessGUI extends JFrame {
         refreshBoard();
     }
 
-    // =========================================================================
     //  RENDERING HELPERS
-    // =========================================================================
 
     /**
      * Repaints every square with the correct piece symbol and background colour.
