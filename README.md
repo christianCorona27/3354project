@@ -12,6 +12,7 @@ validates each move before accepting it.
 
 ## Project Structure
 src/
+
 ├── Main.java
 
 ├── board/      Board representation and move execution
