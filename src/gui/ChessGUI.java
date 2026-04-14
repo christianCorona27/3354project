@@ -4,7 +4,6 @@ import board.Board;
 import pieces.King;
 import pieces.Piece;
 import utils.Position;
-
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
@@ -215,7 +214,6 @@ public class ChessGUI extends JFrame {
      */
     private JPanel createSidePanel() {
         JPanel side = new JPanel(new BorderLayout(5, 5));
-        JPanel side = sidePanel;
         side.setPreferredSize(new Dimension(240, squareSize * 8));
         side.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
