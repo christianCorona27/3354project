@@ -26,6 +26,7 @@ Run this from the project root directory:
 ```bash
 mkdir -p out
 javac -d out src/Main.java src/board/*.java src/game/*.java src/gui/*.java src/pieces/*.java src/player/*.java src/utils/*.java
+```
 
 ## How to Run
 ```bash
