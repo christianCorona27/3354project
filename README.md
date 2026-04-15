@@ -12,12 +12,19 @@ validates each move before accepting it.
 
 ## Project Structure
 src/
+
 ├── Main.java
+
 ├── board/      Board representation and move execution
+
 ├── game/       Game logic
+
 ├── gui/        GUI classes for board display and interaction
+
 ├── pieces/     Abstract Piece class and piece subclasses
+
 ├── player/     Player data
+
 └── utils/      Position helper class
 
 ## How to Compile
@@ -26,10 +33,12 @@ Run this from the project root directory:
 ```bash
 mkdir -p out
 javac -d out src/Main.java src/board/*.java src/game/*.java src/gui/*.java src/pieces/*.java src/player/*.java src/utils/*.java
+```
 
 ## How to Run
 ```bash
-java -cp out Main```
+java -cp out Main
+```
 
 ## How to Play
 Enter moves in the format [FROM] [TO] using standard chess notation:
