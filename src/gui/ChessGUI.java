@@ -71,7 +71,8 @@ public class ChessGUI extends JFrame {
 
         createMenuBar();
         add(createBoardPanel(), BorderLayout.CENTER);
-        add(createSidePanel(), BorderLayout.EAST);
+        sidePanel = createSidePanel();
+        add(sidePanel, BorderLayout.EAST);
 
         pack();
         setLocationRelativeTo(null);
