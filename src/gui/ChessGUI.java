@@ -353,9 +353,24 @@ public class ChessGUI extends JFrame {
             return;
         }
 
-        Piece target = board.getPiece(toRow, toCol);
+       Piece target = board.getPiece(toRow, toCol);
 
         if (target != null && target.getColor().equals(currentTurn)) {
+            selectedPosition = null;
+            refreshBoard();
+            return;
+        }
+
+        // Validate move against piece's legal moves
+        List<Position> legalMoves = moving.getPossibleMoves(board);
+        boolean isLegal = false;
+        for (Position p : legalMoves) {
+            if (p.getRow() == toRow && p.getCol() == toCol) {
+                isLegal = true;
+                break;
+            }
+        }
+        if (!isLegal) {
             selectedPosition = null;
             refreshBoard();
             return;
