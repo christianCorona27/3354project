@@ -1,7 +1,6 @@
 package gui;
 
 import board.Board;
-import pieces.King;
 import pieces.Piece;
 import utils.Position;
 import javax.swing.*;
@@ -64,7 +63,7 @@ public class ChessGUI extends JFrame {
         this.turnHistory     = new Stack<>();
         this.capturedHistory = new Stack<>();
 
-        setTitle("Chess Game – Phase 2");
+        setTitle("Chess Game – Integrated Phase");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         setResizable(false);
@@ -362,16 +361,9 @@ public class ChessGUI extends JFrame {
             return;
         }
 
-        // Validate move against piece's legal moves
-        List<Position> legalMoves = moving.getPossibleMoves(board);
-        boolean isLegal = false;
-        for (Position p : legalMoves) {
-            if (p.getRow() == toRow && p.getCol() == toCol) {
-                isLegal = true;
-                break;
-            }
-        }
-        if (!isLegal) {
+        Position from = new Position(fromRow, fromCol);
+        Position to = new Position(toRow, toCol);
+        if (!board.isLegalMove(from, to, currentTurn)) {
             selectedPosition = null;
             refreshBoard();
             return;
@@ -397,23 +389,15 @@ public class ChessGUI extends JFrame {
             refreshCapturedPanels();
         }
 
-        boolean capturedKing = target instanceof King;
-
-        board.movePiece(new Position(fromRow, fromCol), new Position(toRow, toCol));
+        board.movePiece(from, to);
         moveHistoryArea.append(moveText + "\n");
         moveHistoryArea.setCaretPosition(moveHistoryArea.getDocument().getLength());
 
         selectedPosition = null;
         refreshBoard();
 
-        if (capturedKing) {
-            JOptionPane.showMessageDialog(this,
-                    "♛  " + capitalize(currentTurn) + " wins by capturing the King!",
-                    "Game Over", JOptionPane.INFORMATION_MESSAGE);
-            System.exit(0);
-        }
-
         switchTurn();
+        evaluateGameStateAfterTurnSwitch();
     }
 
 
@@ -763,6 +747,34 @@ public class ChessGUI extends JFrame {
     private void switchTurn() {
         currentTurn = currentTurn.equals("white") ? "black" : "white";
         statusLabel.setText("Turn: " + capitalize(currentTurn));
+    }
+
+    /**
+     * Evaluates check, checkmate, or stalemate after a move is made.
+     */
+    private void evaluateGameStateAfterTurnSwitch() {
+        if (board.isCheckmate(currentTurn)) {
+            String winner = currentTurn.equals("white") ? "Black" : "White";
+            JOptionPane.showMessageDialog(this,
+                    "Checkmate! " + winner + " wins.",
+                    "Game Over", JOptionPane.INFORMATION_MESSAGE);
+            System.exit(0);
+            return;
+        }
+
+        if (board.isStalemate(currentTurn)) {
+            JOptionPane.showMessageDialog(this,
+                    "Stalemate. The game is a draw.",
+                    "Game Over", JOptionPane.INFORMATION_MESSAGE);
+            System.exit(0);
+            return;
+        }
+
+        if (board.isInCheck(currentTurn)) {
+            JOptionPane.showMessageDialog(this,
+                    capitalize(currentTurn) + " is in check.",
+                    "Check", JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     /**

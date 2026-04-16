@@ -54,9 +54,12 @@ Type quit at any time to exit the game.
 - move validation
 - turn switching
 
-## NEW (Phase 2 GUI)
+## NEW (Phase 3 Integration)
 - graphical chess board (GUI)
-- drag-and-drop movement
+- drag-and-drop and click-to-move gameplay
+- backend + GUI integration using shared board state
+- legal move enforcement that prevents self-check
+- check, checkmate, and stalemate detection
 - undo system
 - save game
 - load game
@@ -64,9 +67,9 @@ Type quit at any time to exit the game.
 - unicode chess pieces
 - customizable board colors
 - adjustable square size
+- UML class diagram in `UML_Class_Diagram.md`
 
 ## NOT YET Implemented
-- Check/checkmate/ stalemate detection
 - Castling
 - Enpassant
 - Pawn Promotion

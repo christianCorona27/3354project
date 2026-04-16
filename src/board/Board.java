@@ -3,6 +3,8 @@ package board;
 import pieces.*;
 import utils.Position;
 
+import java.util.List;
+
 /**
  * Represents the chess board and the pieces on it.
  */
@@ -108,6 +110,145 @@ public class Board {
     }
 
     /**
+     * Returns true if a move follows piece movement rules and does not leave
+     * the moving side's king in check.
+     *
+     * @param from source square
+     * @param to destination square
+     * @param movingColor side to move
+     * @return true if legal under current simplified rule-set
+     */
+    public boolean isLegalMove(Position from, Position to, String movingColor) {
+        Piece moving = getPiece(from.getRow(), from.getCol());
+        if (moving == null || !moving.getColor().equals(movingColor)) {
+            return false;
+        }
+
+        Piece target = getPiece(to.getRow(), to.getCol());
+        if (target != null && target.getColor().equals(movingColor)) {
+            return false;
+        }
+
+        // Kings cannot be captured; checkmate must end the game.
+        if (target instanceof King) {
+            return false;
+        }
+
+        boolean canReach = false;
+        List<Position> pseudoLegal = moving.getPossibleMoves(this);
+        for (Position pos : pseudoLegal) {
+            if (pos.getRow() == to.getRow() && pos.getCol() == to.getCol()) {
+                canReach = true;
+                break;
+            }
+        }
+
+        if (!canReach) {
+            return false;
+        }
+
+        Board simulated = copyBoard();
+        simulated.movePiece(from, to);
+        return !simulated.isInCheck(movingColor);
+    }
+
+    /**
+     * Finds whether the given side's king is currently under attack.
+     *
+     * @param color side to evaluate
+     * @return true if that king is in check
+     */
+    public boolean isInCheck(String color) {
+        Position kingPosition = findKing(color);
+        if (kingPosition == null) {
+            return false;
+        }
+
+        String opponent = color.equals("white") ? "black" : "white";
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece piece = getPiece(row, col);
+                if (piece == null || !piece.getColor().equals(opponent)) {
+                    continue;
+                }
+
+                List<Position> moves = piece.getPossibleMoves(this);
+                for (Position move : moves) {
+                    if (move.getRow() == kingPosition.getRow() && move.getCol() == kingPosition.getCol()) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Finds whether the given side has at least one legal move.
+     *
+     * @param color side to evaluate
+     * @return true if at least one legal move exists
+     */
+    public boolean hasAnyLegalMove(String color) {
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece piece = getPiece(row, col);
+                if (piece == null || !piece.getColor().equals(color)) {
+                    continue;
+                }
+
+                List<Position> moves = piece.getPossibleMoves(this);
+                Position from = new Position(row, col);
+                for (Position to : moves) {
+                    if (isLegalMove(from, to, color)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Determines if the provided side is checkmated.
+     *
+     * @param color side to evaluate
+     * @return true if in check and has no legal move
+     */
+    public boolean isCheckmate(String color) {
+        return isInCheck(color) && !hasAnyLegalMove(color);
+    }
+
+    /**
+     * Determines if the provided side is stalemated.
+     *
+     * @param color side to evaluate
+     * @return true if not in check and has no legal move
+     */
+    public boolean isStalemate(String color) {
+        return !isInCheck(color) && !hasAnyLegalMove(color);
+    }
+
+    /**
+     * Locates a side's king.
+     *
+     * @param color side to search
+     * @return board position of the king, or null if absent
+     */
+    private Position findKing(String color) {
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece piece = getPiece(row, col);
+                if (piece instanceof King && piece.getColor().equals(color)) {
+                    return new Position(row, col);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Creates a copy of the board for undo support.
      *
      * @return copied board
@@ -155,4 +296,3 @@ public class Board {
         return null;
     }
 }
-
