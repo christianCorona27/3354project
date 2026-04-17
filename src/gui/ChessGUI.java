@@ -121,7 +121,7 @@ public class ChessGUI extends JFrame {
         setJMenuBar(menuBar);
     }
 
-    //  BOARD PANEL  
+    //  BOARD PANEL  (drag-and-drop + click-to-move)
 
     private JPanel createBoardPanel() {
         JPanel boardPanel = new JPanel(new GridLayout(8, 8));
@@ -297,8 +297,8 @@ public class ChessGUI extends JFrame {
 
         executeMove(fromRow, fromCol, row, col);
     }
-   
-    //  LEGAL MOVE 
+
+    //  LEGAL MOVE COMPUTATION  (filters out moves that leave king in check)
 
     /**
      * Returns the fully-legal moves for a piece: raw candidates minus those
@@ -334,7 +334,8 @@ public class ChessGUI extends JFrame {
                 copy.setPiece(capturedPawnRow, to.getCol(), null);
             }
 
-            copy.movePiece(new Position(fromRow, fromCol), to);
+            // Use moveQuiet so simulation copies never mutate castling/EP flags
+            copy.moveQuiet(new Position(fromRow, fromCol), to);
 
             if (!isInCheck(piece.getColor(), copy)) {
                 legal.add(to);
@@ -392,24 +393,25 @@ public class ChessGUI extends JFrame {
      * @return true if castling is fully legal
      */
     private boolean isCastlingLegal(String color, int toCol, Board b) {
-        int backRank  = color.equals("white") ? 7 : 0;
-        int kingCol   = 4;
+        int backRank = color.equals("white") ? 7 : 0;
+        int kingCol  = 4;
 
         // King must not currently be in check
         if (isInCheck(color, b)) return false;
 
-        // Determine the squares the king traverses
-        int step = (toCol > kingCol) ? 1 : -1;
+        int step   = (toCol > kingCol) ? 1 : -1;
         int midCol = kingCol + step;
 
-        // Mid square must not be attacked
+        // Mid square must not be attacked.
+        // Use moveQuiet (not movePiece) so NO flags are mutated on the copy —
+        // flag mutations inside movePiece corrupt isInCheck via getPossibleMoves callbacks.
         Board midCopy = b.copyBoard();
-        midCopy.movePiece(new Position(backRank, kingCol), new Position(backRank, midCol));
+        midCopy.moveQuiet(new Position(backRank, kingCol), new Position(backRank, midCol));
         if (isInCheck(color, midCopy)) return false;
 
         // Destination must not be attacked
         Board dstCopy = b.copyBoard();
-        dstCopy.movePiece(new Position(backRank, kingCol), new Position(backRank, toCol));
+        dstCopy.moveQuiet(new Position(backRank, kingCol), new Position(backRank, toCol));
         if (isInCheck(color, dstCopy)) return false;
 
         return true;
@@ -509,7 +511,7 @@ public class ChessGUI extends JFrame {
             refreshCapturedPanels();
         }
 
-        // ── Castling rook movement
+        // ── Castling rook movement 
         boolean isCastling = (moving instanceof King && Math.abs(toCol - fromCol) == 2);
         if (isCastling) {
             int backRank = currentTurn.equals("white") ? 7 : 0;
@@ -603,6 +605,7 @@ public class ChessGUI extends JFrame {
     }
 
     //  UNDO
+
     private void undoMove() {
         if (boardHistory.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No moves to undo.");
@@ -742,6 +745,7 @@ public class ChessGUI extends JFrame {
     }
 
     //  SETTINGS WINDOW
+
     private void openSettingsWindow() {
         JDialog dialog = new JDialog(this, "Board & Piece Settings", true);
         dialog.setLayout(new BorderLayout(10, 10));
@@ -832,6 +836,7 @@ public class ChessGUI extends JFrame {
     }
 
     //  RESET
+
     private void resetGame() {
         board = new Board();
         board.initializeBoard();
@@ -851,6 +856,7 @@ public class ChessGUI extends JFrame {
     }
 
     //  RENDERING HELPERS
+
     /**
      * Repaints every square with the correct piece symbol and background.
      * Highlights the king in red when in check.
