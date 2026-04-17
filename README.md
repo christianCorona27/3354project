@@ -1,31 +1,26 @@
-# 3354project - Chess Game Gui
+# 3354project - Chess Game GUI
+
 
 ## Overview
-This project implements Phase 1 of a Java command-line chess backend.
-A console-based chess game written in Java. Two players take turns entering moves
-in standard chess notation. The board is displayed after every move, and the game
-validates each move before accepting it.
+This project is a Java chess game with a graphical user interface. It integrates backend chess logic with the GUI so players can interact with the board visually while the program validates moves and updates the game state.
+
+The project includes board logic, piece classes, turn handling, move history, save/load support, undo functionality, and a GUI-based chess board.
 
 ## Requirements
 - Java 17 or later
 - Git Bash, terminal, or any Java IDE
 
 ## Project Structure
+```text
 src/
-
 ├── Main.java
-
 ├── board/      Board representation and move execution
-
 ├── game/       Game logic
-
 ├── gui/        GUI classes for board display and interaction
-
 ├── pieces/     Abstract Piece class and piece subclasses
-
 ├── player/     Player data
-
 └── utils/      Position helper class
+```
 
 ## How to Compile
 Run this from the project root directory:
@@ -41,20 +36,28 @@ java -cp out Main
 ```
 
 ## How to Play
-Enter moves in the format [FROM] [TO] using standard chess notation:
-E2 E4     moves the piece at E2 to E4
-A2 A4     moves the pawn forward two squares
-Type quit at any time to exit the game.
+- Launch the application
+- Click and move pieces using the GUI
+- The board updates after each move
+- Use the available controls for features such as undo, save, and load
 
 ## Features Implemented
 - 8x8 board representation
-- initial chess board setup
-- abstract Piece superclass
-- separate piece subclasses
-- move validation
-- turn switching
-
-## NEW (Phase 2 GUI)
+- Initial chess board setup
+- Abstract `Piece` superclass
+- Separate piece subclasses
+- Move validation
+- Turn switching
+- GUI chess board
+- Piece interaction through the GUI
+- Undo functionality
+- Save game
+- Load game
+- Captured pieces display
+- Unicode chess piece symbols
+- Customizable board colors
+- Adjustable square size
+- Move history
 - graphical chess board (GUI)
 - drag-and-drop movement
 - undo system
@@ -71,25 +74,3 @@ Type quit at any time to exit the game.
 - Enpassant
 - Pawn Promotion
 
-Example Session
-   
-   A   B   C   D   E   F   G   H
-
-8  bR  bN  bB  bQ  bK  bB  bN  bR
-
-7  bp  bp  bp  bp  bp  bp  bp  bp
-
-6  ##  ##  ##  ##  ##  ##  ##  ##
-
-5  ##  ##  ##  ##  ##  ##  ##  ##
-
-4  ##  ##  ##  ##  ##  ##  ##  ##
-
-3  ##  ##  ##  ##  ##  ##  ##  ##
-
-2  wp  wp  wp  wp  wp  wp  wp  wp
-
-1  wR  wN  wB  wQ  wK  wB  wN  wR
-
-white's turn.
-Enter move (example: E2 E4) or type quit: E2 E4
