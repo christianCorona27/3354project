@@ -67,8 +67,6 @@ java -cp out Main
 - unicode chess pieces
 - customizable board colors
 - adjustable square size
-
-## NOT YET Implemented
 - Check/checkmate/ stalemate detection
 - Castling
 - Enpassant
