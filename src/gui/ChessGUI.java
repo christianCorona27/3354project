@@ -1,8 +1,7 @@
 package gui;
 
 import board.Board;
-import pieces.King;
-import pieces.Piece;
+import pieces.*;
 import utils.Position;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -15,40 +14,46 @@ import java.util.Stack;
 /**
  * Main GUI window for the chess game.
  * Handles board display, click-to-move, drag-and-drop, move history,
- * captured pieces, undo, save/load game, and settings customisation.
+ * captured pieces, undo, save/load game, settings customisation,
+ * check/checkmate/stalemate detection, pawn promotion, castling, and en passant.
  */
 public class ChessGUI extends JFrame {
 
-    // ── Board state
+    // ── Board state ──────────────────────────────────────────────────────
     private Board board;
     private SquareButton[][] buttons;
     private Position selectedPosition;
     private String currentTurn;
 
-    // ── Undo stacks
+    // ── Undo stacks ──────────────────────────────────────────────────────
     private Stack<Board> boardHistory;
     private Stack<String> turnHistory;
     private Stack<String[]> capturedHistory;
 
-    // ── Side-panel widgets
+    // ── Side-panel widgets ───────────────────────────────────────────────
     private JLabel statusLabel;
     private JTextArea moveHistoryArea;
     private JPanel whiteCapturedPanel;
     private JPanel blackCapturedPanel;
     private JPanel sidePanel;
 
-    // ── Settings
-    private Color lightSquareColor = new Color(240, 217, 181);
-    private Color darkSquareColor  = new Color(181, 136,  99);
-    private int   squareSize       = 80;
+    // ── Settings ─────────────────────────────────────────────────────────
+    private Color lightSquareColor   = new Color(240, 217, 181);
+    private Color darkSquareColor    = new Color(181, 136,  99);
+    private Color highlightMoveColor = new Color(100, 200, 100);   // legal move dot
+    private Color checkColor         = new Color(220,  60,  60);   // king in check
+    private int   squareSize         = 80;
 
-    // ── Drag state
+    // ── Drag state ───────────────────────────────────────────────────────
     private int dragFromRow = -1;
     private int dragFromCol = -1;
 
-    // ── Captured piece lists
+    // ── Captured piece lists ─────────────────────────────────────────────
     private List<String> whiteCaptured = new ArrayList<>();
     private List<String> blackCaptured = new ArrayList<>();
+
+    // ── Legal moves for the currently selected piece ─────────────────────
+    private List<Position> currentLegalMoves = new ArrayList<>();
 
     /**
      * Creates the chess GUI window and starts the game.
@@ -56,15 +61,15 @@ public class ChessGUI extends JFrame {
      * @param board the initial game board
      */
     public ChessGUI(Board board) {
-        this.board           = board;
-        this.buttons         = new SquareButton[8][8];
+        this.board            = board;
+        this.buttons          = new SquareButton[8][8];
         this.selectedPosition = null;
-        this.currentTurn     = "white";
-        this.boardHistory    = new Stack<>();
-        this.turnHistory     = new Stack<>();
-        this.capturedHistory = new Stack<>();
+        this.currentTurn      = "white";
+        this.boardHistory     = new Stack<>();
+        this.turnHistory      = new Stack<>();
+        this.capturedHistory  = new Stack<>();
 
-        setTitle("Chess Game – Phase 2");
+        setTitle("Chess Game – Phase 3");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         setResizable(false);
@@ -80,16 +85,13 @@ public class ChessGUI extends JFrame {
         setVisible(true);
     }
 
-
+    // ════════════════════════════════════════════════════════════════════
     //  MENU BAR
+    // ════════════════════════════════════════════════════════════════════
 
-    /**
-     * Builds the menu bar with Game and Settings menus.
-     */
     private void createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
-
-        JMenu gameMenu = new JMenu("Game");
+        JMenu gameMenu   = new JMenu("Game");
 
         JMenuItem newItem  = new JMenuItem("New Game");
         JMenuItem saveItem = new JMenuItem("Save Game");
@@ -112,23 +114,19 @@ public class ChessGUI extends JFrame {
         gameMenu.add(exitItem);
         menuBar.add(gameMenu);
 
-        JMenu settingsMenu = new JMenu("Settings");
-        JMenuItem settingsItem = new JMenuItem("Board & Piece Style…");
-        settingsItem.addActionListener(e -> openSettingsWindow());
-        settingsMenu.add(settingsItem);
+        JMenu settingsMenu  = new JMenu("Settings");
+        JMenuItem styleItem = new JMenuItem("Board & Piece Style…");
+        styleItem.addActionListener(e -> openSettingsWindow());
+        settingsMenu.add(styleItem);
         menuBar.add(settingsMenu);
 
         setJMenuBar(menuBar);
     }
 
-
+    // ════════════════════════════════════════════════════════════════════
     //  BOARD PANEL  (drag-and-drop + click-to-move)
+    // ════════════════════════════════════════════════════════════════════
 
-    /**
-     * Creates the 8x8 grid of square buttons with both click and drag support.
-     *
-     * @return the board panel
-     */
     private JPanel createBoardPanel() {
         JPanel boardPanel = new JPanel(new GridLayout(8, 8));
 
@@ -142,13 +140,10 @@ public class ChessGUI extends JFrame {
                 btn.setFocusPainted(false);
                 setSquareColor(btn, row, col);
 
-                // Click-to-move
                 btn.addActionListener(e ->
                         handleSquareClick(btn.getBoardRow(), btn.getBoardCol()));
 
-                // Drag-and-drop mouse listeners
                 btn.addMouseListener(new java.awt.event.MouseAdapter() {
-                    /** Records the drag source when mouse is pressed on a friendly piece. */
                     @Override
                     public void mousePressed(java.awt.event.MouseEvent e) {
                         int r = btn.getBoardRow();
@@ -160,12 +155,9 @@ public class ChessGUI extends JFrame {
                         }
                     }
 
-                    /** Executes the move when the mouse is released over a target square. */
                     @Override
                     public void mouseReleased(java.awt.event.MouseEvent e) {
                         if (dragFromRow < 0) return;
-
-                        // Find which square the cursor is over
                         Point onScreen = btn.getLocationOnScreen();
                         int absX = onScreen.x + e.getX();
                         int absY = onScreen.y + e.getY();
@@ -179,8 +171,7 @@ public class ChessGUI extends JFrame {
                                 int   bh  = buttons[r][c].getHeight();
                                 if (absX >= loc.x && absX < loc.x + bw
                                         && absY >= loc.y && absY < loc.y + bh) {
-                                    toRow = r;
-                                    toCol = c;
+                                    toRow = r; toCol = c;
                                     break outer;
                                 }
                             }
@@ -190,7 +181,6 @@ public class ChessGUI extends JFrame {
                             selectedPosition = new Position(dragFromRow, dragFromCol);
                             executeMove(dragFromRow, dragFromCol, toRow, toCol);
                         }
-
                         dragFromRow = -1;
                         dragFromCol = -1;
                     }
@@ -200,19 +190,13 @@ public class ChessGUI extends JFrame {
                 boardPanel.add(btn);
             }
         }
-
         return boardPanel;
     }
 
+    // ════════════════════════════════════════════════════════════════════
+    //  SIDE PANEL
+    // ════════════════════════════════════════════════════════════════════
 
-    //  SIDE PANEL  (history, captured pieces, undo button)
-
-    /**
-     * Builds the side panel containing the turn label, captured-piece rows,
-     * move history text area, Undo button, and New Game button.
-     *
-     * @return the configured side panel
-     */
     private JPanel createSidePanel() {
         JPanel side = new JPanel(new BorderLayout(5, 5));
         side.setPreferredSize(new Dimension(240, squareSize * 8));
@@ -259,13 +243,6 @@ public class ChessGUI extends JFrame {
         return side;
     }
 
-    /**
-     * Creates a labelled panel that will show captured pieces for one player.
-     *
-     * @param label    section heading
-     * @param forBlack true = this row holds pieces Black has captured
-     * @return the wrapper panel
-     */
     private JPanel makeCapturedSection(String label, boolean forBlack) {
         JPanel wrapper = new JPanel();
         wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
@@ -281,26 +258,17 @@ public class ChessGUI extends JFrame {
         row.setMaximumSize(new Dimension(222, 34));
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        if (forBlack) {
-            blackCapturedPanel = row;
-        } else {
-            whiteCapturedPanel = row;
-        }
+        if (forBlack) blackCapturedPanel = row;
+        else          whiteCapturedPanel = row;
 
         wrapper.add(row);
         return wrapper;
     }
 
-
+    // ════════════════════════════════════════════════════════════════════
     //  CLICK-TO-MOVE
+    // ════════════════════════════════════════════════════════════════════
 
-    /**
-     * Handles a square click: first click selects a piece,
-     * second click executes the move.
-     *
-     * @param row clicked row
-     * @param col clicked column
-     */
     private void handleSquareClick(int row, int col) {
         Piece clicked = board.getPiece(row, col);
 
@@ -311,7 +279,8 @@ public class ChessGUI extends JFrame {
                         "It is " + capitalize(currentTurn) + "'s turn.");
                 return;
             }
-            selectedPosition = new Position(row, col);
+            selectedPosition   = new Position(row, col);
+            currentLegalMoves  = getLegalMoves(clicked, board);
             highlightSelected(row, col);
             return;
         }
@@ -320,13 +289,15 @@ public class ChessGUI extends JFrame {
         int fromCol = selectedPosition.getCol();
 
         if (fromRow == row && fromCol == col) {
-            selectedPosition = null;
+            selectedPosition  = null;
+            currentLegalMoves = new ArrayList<>();
             refreshBoard();
             return;
         }
 
         if (clicked != null && clicked.getColor().equals(currentTurn)) {
-            selectedPosition = new Position(row, col);
+            selectedPosition  = new Position(row, col);
+            currentLegalMoves = getLegalMoves(clicked, board);
             refreshBoard();
             highlightSelected(row, col);
             return;
@@ -335,11 +306,151 @@ public class ChessGUI extends JFrame {
         executeMove(fromRow, fromCol, row, col);
     }
 
-
-    //  SHARED MOVE EXECUTION
+    // ════════════════════════════════════════════════════════════════════
+    //  LEGAL MOVE COMPUTATION  (filters out moves that leave king in check)
+    // ════════════════════════════════════════════════════════════════════
 
     /**
-     * Executes a move, recording history and handling captures and king detection.
+     * Returns the fully-legal moves for a piece: raw candidates minus those
+     * that leave the mover's own king in check. Also validates castling safety.
+     *
+     * @param piece piece to evaluate
+     * @param b     board to evaluate on
+     * @return filtered list of legal destination positions
+     */
+    private List<Position> getLegalMoves(Piece piece, Board b) {
+        List<Position> raw  = piece.getPossibleMoves(b);
+        List<Position> legal = new ArrayList<>();
+
+        int fromRow = piece.getPosition().getRow();
+        int fromCol = piece.getPosition().getCol();
+
+        for (Position to : raw) {
+            // For castling moves, also verify the king doesn't pass through check
+            if (piece instanceof King && Math.abs(to.getCol() - fromCol) == 2) {
+                if (!isCastlingLegal(piece.getColor(), to.getCol(), b)) continue;
+            }
+
+            // Simulate the move on a copy
+            Board copy = b.copyBoard();
+            Piece movingCopy = copy.getPiece(fromRow, fromCol);
+
+            // Handle en passant capture removal on the copy
+            if (movingCopy instanceof Pawn
+                    && to.getCol() != fromCol
+                    && copy.getPiece(to.getRow(), to.getCol()) == null) {
+                // En passant: remove the captured pawn beside us
+                int capturedPawnRow = fromRow; // same rank as moving pawn before it moves
+                copy.setPiece(capturedPawnRow, to.getCol(), null);
+            }
+
+            copy.movePiece(new Position(fromRow, fromCol), to);
+
+            if (!isInCheck(piece.getColor(), copy)) {
+                legal.add(to);
+            }
+        }
+        return legal;
+    }
+
+    /**
+     * Returns true if the given side's king is in check on board b.
+     *
+     * @param color "white" or "black"
+     * @param b     board to inspect
+     * @return true if king is under attack
+     */
+    private boolean isInCheck(String color, Board b) {
+        // Find this side's king
+        int kingRow = -1, kingCol = -1;
+        outer:
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                Piece p = b.getPiece(r, c);
+                if (p instanceof King && p.getColor().equals(color)) {
+                    kingRow = r; kingCol = c;
+                    break outer;
+                }
+            }
+        }
+        if (kingRow < 0) return false; // shouldn't happen in a real game
+
+        String opponent = color.equals("white") ? "black" : "white";
+
+        // Check if any opponent piece can reach the king
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                Piece p = b.getPiece(r, c);
+                if (p != null && p.getColor().equals(opponent)) {
+                    for (Position atk : p.getPossibleMoves(b)) {
+                        if (atk.getRow() == kingRow && atk.getCol() == kingCol) return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verifies that a castling move is legal:
+     * the king must not be in check currently, must not pass through an
+     * attacked square, and must not end in check.
+     *
+     * @param color     castling side
+     * @param toCol     destination column (6 = king-side, 2 = queen-side)
+     * @param b         current board
+     * @return true if castling is fully legal
+     */
+    private boolean isCastlingLegal(String color, int toCol, Board b) {
+        int backRank  = color.equals("white") ? 7 : 0;
+        int kingCol   = 4;
+
+        // King must not currently be in check
+        if (isInCheck(color, b)) return false;
+
+        // Determine the squares the king traverses
+        int step = (toCol > kingCol) ? 1 : -1;
+        int midCol = kingCol + step;
+
+        // Mid square must not be attacked
+        Board midCopy = b.copyBoard();
+        midCopy.movePiece(new Position(backRank, kingCol), new Position(backRank, midCol));
+        if (isInCheck(color, midCopy)) return false;
+
+        // Destination must not be attacked
+        Board dstCopy = b.copyBoard();
+        dstCopy.movePiece(new Position(backRank, kingCol), new Position(backRank, toCol));
+        if (isInCheck(color, dstCopy)) return false;
+
+        return true;
+    }
+
+    /**
+     * Returns true if the current player has no legal moves (checkmate or stalemate).
+     *
+     * @param color side to evaluate
+     * @return true if the player has zero legal moves
+     */
+    private boolean hasNoLegalMoves(String color) {
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                Piece p = board.getPiece(r, c);
+                if (p != null && p.getColor().equals(color)) {
+                    if (!getLegalMoves(p, board).isEmpty()) return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    //  SHARED MOVE EXECUTION
+    // ════════════════════════════════════════════════════════════════════
+
+    /**
+     * Executes a move after validating legality, handles special moves
+     * (castling, en passant, pawn promotion), updates GUI, checks for
+     * check/checkmate/stalemate.
      *
      * @param fromRow source row
      * @param fromCol source column
@@ -349,30 +460,30 @@ public class ChessGUI extends JFrame {
     private void executeMove(int fromRow, int fromCol, int toRow, int toCol) {
         Piece moving = board.getPiece(fromRow, fromCol);
         if (moving == null || !moving.getColor().equals(currentTurn)) {
-            selectedPosition = null;
+            selectedPosition  = null;
+            currentLegalMoves = new ArrayList<>();
             refreshBoard();
             return;
         }
 
-       Piece target = board.getPiece(toRow, toCol);
+        Piece target = board.getPiece(toRow, toCol);
 
         if (target != null && target.getColor().equals(currentTurn)) {
-            selectedPosition = null;
+            selectedPosition  = null;
+            currentLegalMoves = new ArrayList<>();
             refreshBoard();
             return;
         }
 
-        // Validate move against piece's legal moves
-        List<Position> legalMoves = moving.getPossibleMoves(board);
+        // Validate against pre-computed or freshly computed legal moves
+        List<Position> legal = getLegalMoves(moving, board);
         boolean isLegal = false;
-        for (Position p : legalMoves) {
-            if (p.getRow() == toRow && p.getCol() == toCol) {
-                isLegal = true;
-                break;
-            }
+        for (Position p : legal) {
+            if (p.getRow() == toRow && p.getCol() == toCol) { isLegal = true; break; }
         }
         if (!isLegal) {
-            selectedPosition = null;
+            selectedPosition  = null;
+            currentLegalMoves = new ArrayList<>();
             refreshBoard();
             return;
         }
@@ -382,48 +493,133 @@ public class ChessGUI extends JFrame {
         turnHistory.push(currentTurn);
         capturedHistory.push(snapshotCaptured());
 
-        // Build move history entry
+        // Build move-history entry
         String moveText = capitalize(currentTurn) + ": "
                 + toChessNotation(fromRow, fromCol) + " → "
                 + toChessNotation(toRow, toCol);
 
-        if (target != null) {
-            moveText += "  ✕" + getPieceUnicode(target);
-            if (currentTurn.equals("white")) {
-                whiteCaptured.add(getPieceUnicode(target));
-            } else {
-                blackCaptured.add(getPieceUnicode(target));
+        // ── En passant capture ────────────────────────────────────────
+        boolean isEnPassant = false;
+        if (moving instanceof Pawn && toCol != fromCol && target == null) {
+            isEnPassant = true;
+            // Captured pawn sits on the same rank as the moving pawn (before the move)
+            Piece captured = board.getPiece(fromRow, toCol);
+            if (captured != null) {
+                moveText += "  ✕" + getPieceUnicode(captured) + " (en passant)";
+                if (currentTurn.equals("white")) whiteCaptured.add(getPieceUnicode(captured));
+                else                             blackCaptured.add(getPieceUnicode(captured));
+                board.setPiece(fromRow, toCol, null); // remove the captured pawn
+                refreshCapturedPanels();
             }
+        }
+
+        // ── Normal capture ────────────────────────────────────────────
+        if (target != null && !isEnPassant) {
+            moveText += "  ✕" + getPieceUnicode(target);
+            if (currentTurn.equals("white")) whiteCaptured.add(getPieceUnicode(target));
+            else                             blackCaptured.add(getPieceUnicode(target));
             refreshCapturedPanels();
         }
 
-        boolean capturedKing = target instanceof King;
+        // ── Castling rook movement ────────────────────────────────────
+        boolean isCastling = (moving instanceof King && Math.abs(toCol - fromCol) == 2);
+        if (isCastling) {
+            int backRank = currentTurn.equals("white") ? 7 : 0;
+            if (toCol == 6) { // king-side
+                Piece rook = board.getPiece(backRank, 7);
+                board.setPiece(backRank, 7, null);
+                board.setPiece(backRank, 5, rook);
+                if (rook != null) rook.setPosition(new Position(backRank, 5));
+                moveText += " (O-O)";
+            } else { // queen-side  toCol == 2
+                Piece rook = board.getPiece(backRank, 0);
+                board.setPiece(backRank, 0, null);
+                board.setPiece(backRank, 3, rook);
+                if (rook != null) rook.setPosition(new Position(backRank, 3));
+                moveText += " (O-O-O)";
+            }
+        }
 
+        // Execute the move on the real board
         board.movePiece(new Position(fromRow, fromCol), new Position(toRow, toCol));
+
+        // ── Pawn promotion ────────────────────────────────────────────
+        if (moving instanceof Pawn && (toRow == 0 || toRow == 7)) {
+            Piece promoted = promptPromotion(currentTurn, new Position(toRow, toCol));
+            board.setPiece(toRow, toCol, promoted);
+            moveText += " =" + getPieceUnicode(promoted);
+        }
+
         moveHistoryArea.append(moveText + "\n");
         moveHistoryArea.setCaretPosition(moveHistoryArea.getDocument().getLength());
 
-        selectedPosition = null;
+        selectedPosition  = null;
+        currentLegalMoves = new ArrayList<>();
         refreshBoard();
+        switchTurn();
 
-        if (capturedKing) {
-            JOptionPane.showMessageDialog(this,
-                    "♛  " + capitalize(currentTurn) + " wins by capturing the King!",
-                    "Game Over", JOptionPane.INFORMATION_MESSAGE);
-            System.exit(0);
+        // ── Post-move game-state checks ───────────────────────────────
+        String opponent = currentTurn; // already switched
+        if (hasNoLegalMoves(opponent)) {
+            if (isInCheck(opponent, board)) {
+                // Checkmate
+                String winner = opponent.equals("white") ? "Black" : "White";
+                refreshBoard(); // paint the board before dialog
+                JOptionPane.showMessageDialog(this,
+                        "♛  Checkmate!  " + winner + " wins!",
+                        "Game Over", JOptionPane.INFORMATION_MESSAGE);
+                resetGame();
+            } else {
+                // Stalemate
+                JOptionPane.showMessageDialog(this,
+                        "Stalemate! The game is a draw.",
+                        "Draw", JOptionPane.INFORMATION_MESSAGE);
+                resetGame();
+            }
+            return;
         }
 
-        switchTurn();
+        if (isInCheck(opponent, board)) {
+            statusLabel.setText("Turn: " + capitalize(opponent) + "  ⚠ CHECK!");
+            statusLabel.setForeground(Color.RED);
+        }
     }
 
-
-    //  UNDO  
-
+    // ════════════════════════════════════════════════════════════════════
+    //  PAWN PROMOTION DIALOG
+    // ════════════════════════════════════════════════════════════════════
 
     /**
-     * Reverts the game to the state before the last move,
-     * restoring the board, captured pieces, and move history.
+     * Shows a dialog asking the player to choose a promotion piece.
+     *
+     * @param color  "white" or "black"
+     * @param pos    position where the promoted piece will stand
+     * @return the chosen Piece (default Queen if dialog closed)
      */
+    private Piece promptPromotion(String color, Position pos) {
+        String[] options = {"Queen ♕", "Rook ♖", "Bishop ♗", "Knight ♘"};
+        int choice = JOptionPane.showOptionDialog(
+                this,
+                "Choose a piece to promote your pawn to:",
+                "Pawn Promotion",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]);
+
+        return switch (choice) {
+            case 1  -> new Rook(color, pos);
+            case 2  -> new Bishop(color, pos);
+            case 3  -> new Knight(color, pos);
+            default -> new Queen(color, pos);
+        };
+    }
+
+    // ════════════════════════════════════════════════════════════════════
+    //  UNDO
+    // ════════════════════════════════════════════════════════════════════
+
     private void undoMove() {
         if (boardHistory.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No moves to undo.");
@@ -437,23 +633,22 @@ public class ChessGUI extends JFrame {
         whiteCaptured = decodeCaptures(snap[0]);
         blackCaptured = decodeCaptures(snap[1]);
 
-        selectedPosition = null;
+        selectedPosition  = null;
+        currentLegalMoves = new ArrayList<>();
         refreshBoard();
         refreshCapturedPanels();
         statusLabel.setText("Turn: " + capitalize(currentTurn));
+        statusLabel.setForeground(Color.BLACK);
 
-        // Strip last line from move history
         String text   = moveHistoryArea.getText();
         int    lastNL = text.lastIndexOf('\n', text.length() - 2);
         moveHistoryArea.setText(lastNL >= 0 ? text.substring(0, lastNL + 1) : "");
     }
 
+    // ════════════════════════════════════════════════════════════════════
     //  SAVE GAME
+    // ════════════════════════════════════════════════════════════════════
 
-    /**
-     * Saves the current game state to a .chess file chosen by the user.
-     * The file stores turn, move history, captured pieces, and board layout.
-     */
     private void saveGame() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Save Game");
@@ -470,16 +665,22 @@ public class ChessGUI extends JFrame {
             pw.println("HISTORY:" + moveHistoryArea.getText().replace("\n", "\\n"));
             pw.println("WHITE_CAPTURED:" + String.join("\u001F", whiteCaptured));
             pw.println("BLACK_CAPTURED:" + String.join("\u001F", blackCaptured));
+            // Castling / en-passant flags
+            pw.println("WK_MOVED:"  + board.isWhiteKingMoved());
+            pw.println("BK_MOVED:"  + board.isBlackKingMoved());
+            pw.println("WRA1_MOVED:" + board.isWhiteRookA1Moved());
+            pw.println("WRH1_MOVED:" + board.isWhiteRookH1Moved());
+            pw.println("BRA8_MOVED:" + board.isBlackRookA8Moved());
+            pw.println("BRH8_MOVED:" + board.isBlackRookH8Moved());
+            pw.println("EP_ROW:"    + board.getEnPassantRow());
+            pw.println("EP_COL:"    + board.getEnPassantCol());
 
             for (int r = 0; r < 8; r++) {
                 for (int c = 0; c < 8; c++) {
                     Piece p = board.getPiece(r, c);
-                    if (p == null) {
-                        pw.println("EMPTY");
-                    } else {
-                        pw.println(p.getClass().getSimpleName()
+                    if (p == null) pw.println("EMPTY");
+                    else pw.println(p.getClass().getSimpleName()
                                 + ":" + p.getColor() + ":" + r + ":" + c);
-                    }
                 }
             }
             JOptionPane.showMessageDialog(this, "Game saved to:\n" + file.getName());
@@ -489,12 +690,10 @@ public class ChessGUI extends JFrame {
         }
     }
 
+    // ════════════════════════════════════════════════════════════════════
     //  LOAD GAME
+    // ════════════════════════════════════════════════════════════════════
 
-    /**
-     * Loads a game from a .chess file chosen by the user,
-     * restoring turn, history, captured pieces, and board state.
-     */
     private void loadGame() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Load Game");
@@ -511,6 +710,18 @@ public class ChessGUI extends JFrame {
             blackCaptured = decodeCaptures(br.readLine().replace("BLACK_CAPTURED:", ""));
 
             Board loaded = new Board();
+
+            // Read flags
+            loaded.setWhiteKingMoved(Boolean.parseBoolean(br.readLine().replace("WK_MOVED:", "")));
+            loaded.setBlackKingMoved(Boolean.parseBoolean(br.readLine().replace("BK_MOVED:", "")));
+            loaded.setWhiteRookA1Moved(Boolean.parseBoolean(br.readLine().replace("WRA1_MOVED:", "")));
+            loaded.setWhiteRookH1Moved(Boolean.parseBoolean(br.readLine().replace("WRH1_MOVED:", "")));
+            loaded.setBlackRookA8Moved(Boolean.parseBoolean(br.readLine().replace("BRA8_MOVED:", "")));
+            loaded.setBlackRookH8Moved(Boolean.parseBoolean(br.readLine().replace("BRH8_MOVED:", "")));
+            int epRow = Integer.parseInt(br.readLine().replace("EP_ROW:", ""));
+            int epCol = Integer.parseInt(br.readLine().replace("EP_COL:", ""));
+            loaded.setEnPassant(epRow, epCol);
+
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.equals("EMPTY")) continue;
@@ -524,11 +735,13 @@ public class ChessGUI extends JFrame {
             boardHistory.clear();
             turnHistory.clear();
             capturedHistory.clear();
-            selectedPosition = null;
+            selectedPosition  = null;
+            currentLegalMoves = new ArrayList<>();
 
             refreshBoard();
             refreshCapturedPanels();
             statusLabel.setText("Turn: " + capitalize(currentTurn));
+            statusLabel.setForeground(Color.BLACK);
             JOptionPane.showMessageDialog(this, "Game loaded successfully.");
 
         } catch (Exception ex) {
@@ -537,34 +750,22 @@ public class ChessGUI extends JFrame {
         }
     }
 
-    /**
-     * Reconstructs a Piece from its class name, colour, and position.
-     * Used when reading a saved game file.
-     *
-     * @param type  simple class name (e.g. "Queen")
-     * @param color piece colour string
-     * @param pos   board position
-     * @return the appropriate Piece subclass instance
-     */
     private Piece createPiece(String type, String color, Position pos) {
         return switch (type) {
-            case "Pawn"   -> new pieces.Pawn(color, pos);
-            case "Rook"   -> new pieces.Rook(color, pos);
-            case "Knight" -> new pieces.Knight(color, pos);
-            case "Bishop" -> new pieces.Bishop(color, pos);
-            case "Queen"  -> new pieces.Queen(color, pos);
-            case "King"   -> new pieces.King(color, pos);
+            case "Pawn"   -> new Pawn(color, pos);
+            case "Rook"   -> new Rook(color, pos);
+            case "Knight" -> new Knight(color, pos);
+            case "Bishop" -> new Bishop(color, pos);
+            case "Queen"  -> new Queen(color, pos);
+            case "King"   -> new King(color, pos);
             default       -> throw new IllegalArgumentException("Unknown piece: " + type);
         };
     }
 
+    // ════════════════════════════════════════════════════════════════════
     //  SETTINGS WINDOW
+    // ════════════════════════════════════════════════════════════════════
 
-    /**
-     * Opens a modal Settings dialog allowing the user to choose board colours
-     * (via preset themes or custom colour pickers) and board size.
-     * Clicking Apply updates the board immediately.
-     */
     private void openSettingsWindow() {
         JDialog dialog = new JDialog(this, "Board & Piece Settings", true);
         dialog.setLayout(new BorderLayout(10, 10));
@@ -574,13 +775,11 @@ public class ChessGUI extends JFrame {
 
         JPanel form = new JPanel(new GridLayout(0, 2, 8, 10));
 
-        // Theme preset
         form.add(new JLabel("Board theme:"));
         String[] themes = {"Classic Wood", "Modern Gray", "Green Felt", "Blue Ocean", "Custom"};
         JComboBox<String> themeBox = new JComboBox<>(themes);
         form.add(themeBox);
 
-        // Custom light colour
         form.add(new JLabel("Light square colour:"));
         JButton lightBtn = new JButton("Choose…");
         lightBtn.setBackground(lightSquareColor);
@@ -592,7 +791,6 @@ public class ChessGUI extends JFrame {
         });
         form.add(lightBtn);
 
-        // Custom dark colour
         form.add(new JLabel("Dark square colour:"));
         JButton darkBtn = new JButton("Choose…");
         darkBtn.setBackground(darkSquareColor);
@@ -604,7 +802,6 @@ public class ChessGUI extends JFrame {
         });
         form.add(darkBtn);
 
-        // Board size
         form.add(new JLabel("Board size:"));
         String[] sizes = {"Small (60 px)", "Medium (80 px)", "Large (100 px)"};
         JComboBox<String> sizeBox = new JComboBox<>(sizes);
@@ -614,10 +811,10 @@ public class ChessGUI extends JFrame {
         dialog.add(form, BorderLayout.CENTER);
 
         JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton applyBtn  = new JButton("Apply");
+        JButton cancelBtn = new JButton("Cancel");
 
-        JButton applyBtn = new JButton("Apply");
         applyBtn.addActionListener(e -> {
-            // Apply preset theme colours unless "Custom" was selected
             switch ((String) themeBox.getSelectedItem()) {
                 case "Classic Wood" ->
                     { chosenLight[0] = new Color(240,217,181); chosenDark[0] = new Color(181,136, 99); }
@@ -629,31 +826,21 @@ public class ChessGUI extends JFrame {
                     { chosenLight[0] = new Color(173,216,230); chosenDark[0] = new Color( 32, 88,144); }
                 default -> { /* keep custom picks */ }
             }
-
             lightSquareColor = chosenLight[0];
             darkSquareColor  = chosenDark[0];
-
             int[] px = {60, 80, 100};
             squareSize = px[sizeBox.getSelectedIndex()];
-
             applySettings();
             dialog.dispose();
         });
-
-        JButton cancelBtn = new JButton("Cancel");
         cancelBtn.addActionListener(e -> dialog.dispose());
 
         btnRow.add(applyBtn);
         btnRow.add(cancelBtn);
         dialog.add(btnRow, BorderLayout.SOUTH);
-
         dialog.setVisible(true);
     }
 
-    /**
-     * Applies the current colour and size settings to every board square
-     * and repacks the window so layout adjusts to the new square size.
-     */
     private void applySettings() {
         for (int r = 0; r < 8; r++) {
             for (int c = 0; c < 8; c++) {
@@ -668,18 +855,16 @@ public class ChessGUI extends JFrame {
         pack();
     }
 
-
+    // ════════════════════════════════════════════════════════════════════
     //  RESET
+    // ════════════════════════════════════════════════════════════════════
 
-    /**
-     * Resets the game to its initial state: fresh board, cleared history,
-     * empty captured panels, and White to move.
-     */
     private void resetGame() {
         board = new Board();
         board.initializeBoard();
-        selectedPosition = null;
-        currentTurn      = "white";
+        selectedPosition  = null;
+        currentTurn       = "white";
+        currentLegalMoves = new ArrayList<>();
         boardHistory.clear();
         turnHistory.clear();
         capturedHistory.clear();
@@ -688,62 +873,80 @@ public class ChessGUI extends JFrame {
         blackCaptured.clear();
         refreshCapturedPanels();
         statusLabel.setText("Turn: White");
+        statusLabel.setForeground(Color.BLACK);
         refreshBoard();
     }
 
+    // ════════════════════════════════════════════════════════════════════
     //  RENDERING HELPERS
+    // ════════════════════════════════════════════════════════════════════
 
     /**
-     * Repaints every square with the correct piece symbol and background colour.
+     * Repaints every square with the correct piece symbol and background.
+     * Highlights the king in red when in check.
+     * Dims squares that are legal move targets with a green tint.
      */
     private void refreshBoard() {
+        // Build set of legal move destinations for quick lookup
+        boolean[][] isLegalTarget = new boolean[8][8];
+        for (Position p : currentLegalMoves) {
+            isLegalTarget[p.getRow()][p.getCol()] = true;
+        }
+
         for (int r = 0; r < 8; r++) {
             for (int c = 0; c < 8; c++) {
                 SquareButton btn   = buttons[r][c];
                 Piece        piece = board.getPiece(r, c);
                 setSquareColor(btn, r, c);
+
+                if (isLegalTarget[r][c]) {
+                    // Blend toward green for legal move squares
+                    Color base = btn.getBackground();
+                    btn.setBackground(new Color(
+                        (base.getRed()   + highlightMoveColor.getRed())   / 2,
+                        (base.getGreen() + highlightMoveColor.getGreen()) / 2,
+                        (base.getBlue()  + highlightMoveColor.getBlue())  / 2));
+                }
+
                 btn.setText(piece == null ? "" : getPieceUnicode(piece));
             }
         }
+
+        // Highlight king in check
+        String[] sides = {"white", "black"};
+        for (String side : sides) {
+            if (isInCheck(side, board)) {
+                for (int r = 0; r < 8; r++) {
+                    for (int c = 0; c < 8; c++) {
+                        Piece p = board.getPiece(r, c);
+                        if (p instanceof King && p.getColor().equals(side)) {
+                            buttons[r][c].setBackground(checkColor);
+                        }
+                    }
+                }
+            }
+        }
+
         repaint();
     }
 
     /**
-     * Highlights the selected square yellow; all other squares use normal colours.
-     *
-     * @param row selected row
-     * @param col selected column
+     * Highlights the selected square yellow and shows legal move targets.
      */
     private void highlightSelected(int row, int col) {
         refreshBoard();
         buttons[row][col].setBackground(new Color(255, 220, 50));
     }
 
-    /**
-     * Sets a button's background to the current light or dark square colour.
-     *
-     * @param btn the square button to colour
-     * @param row the button's row
-     * @param col the button's column
-     */
     private void setSquareColor(SquareButton btn, int row, int col) {
         btn.setBackground((row + col) % 2 == 0 ? lightSquareColor : darkSquareColor);
     }
 
-    /**
-     * Redraws both captured-piece display panels from the current lists.
-     */
     private void refreshCapturedPanels() {
         updateCapturedPanel(whiteCapturedPanel, whiteCaptured);
         updateCapturedPanel(blackCapturedPanel, blackCaptured);
     }
 
-    /**
-     * Repopulates a single captured-piece panel from a list of Unicode symbols.
-     *
-     * @param panel  the panel to update
-     * @param pieces list of piece symbols
-     */
     private void updateCapturedPanel(JPanel panel, List<String> pieces) {
         panel.removeAll();
         for (String sym : pieces) {
@@ -754,34 +957,21 @@ public class ChessGUI extends JFrame {
         panel.revalidate();
         panel.repaint();
     }
-   //  HELPERS
 
+    // ════════════════════════════════════════════════════════════════════
+    //  HELPERS
+    // ════════════════════════════════════════════════════════════════════
 
-    /**
-     * Switches the active player and updates the turn label.
-     */
     private void switchTurn() {
         currentTurn = currentTurn.equals("white") ? "black" : "white";
         statusLabel.setText("Turn: " + capitalize(currentTurn));
+        statusLabel.setForeground(Color.BLACK);
     }
 
-    /**
-     * Converts a board position to standard algebraic notation (e.g. E4).
-     *
-     * @param row board row (0 = rank 8)
-     * @param col board column (0 = file A)
-     * @return notation string like "E4"
-     */
     private String toChessNotation(int row, int col) {
         return "" + (char) ('A' + col) + (8 - row);
     }
 
-    /**
-     * Returns the Unicode chess symbol for a piece.
-     *
-     * @param piece the piece to look up
-     * @return a single Unicode character string (e.g. "♔")
-     */
     private String getPieceUnicode(Piece piece) {
         boolean w = piece.getColor().equals("white");
         return switch (piece.getClass().getSimpleName()) {
@@ -795,22 +985,10 @@ public class ChessGUI extends JFrame {
         };
     }
 
-    /**
-     * Capitalises the first character of a string.
-     *
-     * @param s input string
-     * @return string with first letter uppercased
-     */
     private String capitalize(String s) {
         return s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
-    /**
-     * Snapshots the current captured-piece lists into a two-element String array
-     * so they can be pushed onto the undo stack.
-     *
-     * @return [white captured encoded, black captured encoded]
-     */
     private String[] snapshotCaptured() {
         return new String[]{
             String.join("\u001F", whiteCaptured),
@@ -818,20 +996,11 @@ public class ChessGUI extends JFrame {
         };
     }
 
-    /**
-     * Decodes a captured-piece snapshot string back into a mutable list.
-     *
-     * @param encoded the encoded string (unit-separator delimited)
-     * @return mutable list of piece symbols
-     */
     private List<String> decodeCaptures(String encoded) {
         List<String> list = new ArrayList<>();
         if (encoded != null && !encoded.isEmpty()) {
-            for (String s : encoded.split("\u001F")) {
-                list.add(s);
-            }
+            for (String s : encoded.split("\u001F")) list.add(s);
         }
         return list;
     }
 }
-
