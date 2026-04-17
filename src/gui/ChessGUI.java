@@ -19,40 +19,40 @@ import java.util.Stack;
  */
 public class ChessGUI extends JFrame {
 
-    // ── Board state ──────────────────────────────────────────────────────
+    // ── Board state 
     private Board board;
     private SquareButton[][] buttons;
     private Position selectedPosition;
     private String currentTurn;
 
-    // ── Undo stacks ──────────────────────────────────────────────────────
+    // ── Undo stacks 
     private Stack<Board> boardHistory;
     private Stack<String> turnHistory;
     private Stack<String[]> capturedHistory;
 
-    // ── Side-panel widgets ───────────────────────────────────────────────
+    // ── Side-panel widgets 
     private JLabel statusLabel;
     private JTextArea moveHistoryArea;
     private JPanel whiteCapturedPanel;
     private JPanel blackCapturedPanel;
     private JPanel sidePanel;
 
-    // ── Settings ─────────────────────────────────────────────────────────
+    // ── Settings 
     private Color lightSquareColor   = new Color(240, 217, 181);
     private Color darkSquareColor    = new Color(181, 136,  99);
     private Color highlightMoveColor = new Color(100, 200, 100);   // legal move dot
     private Color checkColor         = new Color(220,  60,  60);   // king in check
     private int   squareSize         = 80;
 
-    // ── Drag state ───────────────────────────────────────────────────────
+    // ── Drag state 
     private int dragFromRow = -1;
     private int dragFromCol = -1;
 
-    // ── Captured piece lists ─────────────────────────────────────────────
+    // ── Captured piece lists 
     private List<String> whiteCaptured = new ArrayList<>();
     private List<String> blackCaptured = new ArrayList<>();
 
-    // ── Legal moves for the currently selected piece ─────────────────────
+    // ── Legal moves for the currently selected piece 
     private List<Position> currentLegalMoves = new ArrayList<>();
 
     /**
@@ -85,9 +85,7 @@ public class ChessGUI extends JFrame {
         setVisible(true);
     }
 
-    // ════════════════════════════════════════════════════════════════════
     //  MENU BAR
-    // ════════════════════════════════════════════════════════════════════
 
     private void createMenuBar() {
         JMenuBar menuBar = new JMenuBar();
@@ -123,9 +121,7 @@ public class ChessGUI extends JFrame {
         setJMenuBar(menuBar);
     }
 
-    // ════════════════════════════════════════════════════════════════════
-    //  BOARD PANEL  (drag-and-drop + click-to-move)
-    // ════════════════════════════════════════════════════════════════════
+    //  BOARD PANEL  
 
     private JPanel createBoardPanel() {
         JPanel boardPanel = new JPanel(new GridLayout(8, 8));
@@ -193,9 +189,7 @@ public class ChessGUI extends JFrame {
         return boardPanel;
     }
 
-    // ════════════════════════════════════════════════════════════════════
     //  SIDE PANEL
-    // ════════════════════════════════════════════════════════════════════
 
     private JPanel createSidePanel() {
         JPanel side = new JPanel(new BorderLayout(5, 5));
@@ -265,9 +259,7 @@ public class ChessGUI extends JFrame {
         return wrapper;
     }
 
-    // ════════════════════════════════════════════════════════════════════
     //  CLICK-TO-MOVE
-    // ════════════════════════════════════════════════════════════════════
 
     private void handleSquareClick(int row, int col) {
         Piece clicked = board.getPiece(row, col);
@@ -305,10 +297,8 @@ public class ChessGUI extends JFrame {
 
         executeMove(fromRow, fromCol, row, col);
     }
-
-    // ════════════════════════════════════════════════════════════════════
-    //  LEGAL MOVE COMPUTATION  (filters out moves that leave king in check)
-    // ════════════════════════════════════════════════════════════════════
+   
+    //  LEGAL MOVE 
 
     /**
      * Returns the fully-legal moves for a piece: raw candidates minus those
@@ -443,9 +433,7 @@ public class ChessGUI extends JFrame {
         return true;
     }
 
-    // ════════════════════════════════════════════════════════════════════
     //  SHARED MOVE EXECUTION
-    // ════════════════════════════════════════════════════════════════════
 
     /**
      * Executes a move after validating legality, handles special moves
@@ -498,7 +486,7 @@ public class ChessGUI extends JFrame {
                 + toChessNotation(fromRow, fromCol) + " → "
                 + toChessNotation(toRow, toCol);
 
-        // ── En passant capture ────────────────────────────────────────
+        // ── En passant capture 
         boolean isEnPassant = false;
         if (moving instanceof Pawn && toCol != fromCol && target == null) {
             isEnPassant = true;
@@ -513,7 +501,7 @@ public class ChessGUI extends JFrame {
             }
         }
 
-        // ── Normal capture ────────────────────────────────────────────
+        // ── Normal capture 
         if (target != null && !isEnPassant) {
             moveText += "  ✕" + getPieceUnicode(target);
             if (currentTurn.equals("white")) whiteCaptured.add(getPieceUnicode(target));
@@ -521,7 +509,7 @@ public class ChessGUI extends JFrame {
             refreshCapturedPanels();
         }
 
-        // ── Castling rook movement ────────────────────────────────────
+        // ── Castling rook movement
         boolean isCastling = (moving instanceof King && Math.abs(toCol - fromCol) == 2);
         if (isCastling) {
             int backRank = currentTurn.equals("white") ? 7 : 0;
@@ -543,7 +531,7 @@ public class ChessGUI extends JFrame {
         // Execute the move on the real board
         board.movePiece(new Position(fromRow, fromCol), new Position(toRow, toCol));
 
-        // ── Pawn promotion ────────────────────────────────────────────
+        // ── Pawn promotion 
         if (moving instanceof Pawn && (toRow == 0 || toRow == 7)) {
             Piece promoted = promptPromotion(currentTurn, new Position(toRow, toCol));
             board.setPiece(toRow, toCol, promoted);
@@ -558,7 +546,7 @@ public class ChessGUI extends JFrame {
         refreshBoard();
         switchTurn();
 
-        // ── Post-move game-state checks ───────────────────────────────
+        // ── Post-move game-state checks 
         String opponent = currentTurn; // already switched
         if (hasNoLegalMoves(opponent)) {
             if (isInCheck(opponent, board)) {
@@ -585,9 +573,7 @@ public class ChessGUI extends JFrame {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════
     //  PAWN PROMOTION DIALOG
-    // ════════════════════════════════════════════════════════════════════
 
     /**
      * Shows a dialog asking the player to choose a promotion piece.
@@ -616,10 +602,7 @@ public class ChessGUI extends JFrame {
         };
     }
 
-    // ════════════════════════════════════════════════════════════════════
     //  UNDO
-    // ════════════════════════════════════════════════════════════════════
-
     private void undoMove() {
         if (boardHistory.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No moves to undo.");
@@ -645,9 +628,7 @@ public class ChessGUI extends JFrame {
         moveHistoryArea.setText(lastNL >= 0 ? text.substring(0, lastNL + 1) : "");
     }
 
-    // ════════════════════════════════════════════════════════════════════
     //  SAVE GAME
-    // ════════════════════════════════════════════════════════════════════
 
     private void saveGame() {
         JFileChooser fc = new JFileChooser();
@@ -690,9 +671,7 @@ public class ChessGUI extends JFrame {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════
     //  LOAD GAME
-    // ════════════════════════════════════════════════════════════════════
 
     private void loadGame() {
         JFileChooser fc = new JFileChooser();
@@ -762,10 +741,7 @@ public class ChessGUI extends JFrame {
         };
     }
 
-    // ════════════════════════════════════════════════════════════════════
     //  SETTINGS WINDOW
-    // ════════════════════════════════════════════════════════════════════
-
     private void openSettingsWindow() {
         JDialog dialog = new JDialog(this, "Board & Piece Settings", true);
         dialog.setLayout(new BorderLayout(10, 10));
@@ -855,10 +831,7 @@ public class ChessGUI extends JFrame {
         pack();
     }
 
-    // ════════════════════════════════════════════════════════════════════
     //  RESET
-    // ════════════════════════════════════════════════════════════════════
-
     private void resetGame() {
         board = new Board();
         board.initializeBoard();
@@ -877,10 +850,7 @@ public class ChessGUI extends JFrame {
         refreshBoard();
     }
 
-    // ════════════════════════════════════════════════════════════════════
     //  RENDERING HELPERS
-    // ════════════════════════════════════════════════════════════════════
-
     /**
      * Repaints every square with the correct piece symbol and background.
      * Highlights the king in red when in check.
@@ -958,9 +928,7 @@ public class ChessGUI extends JFrame {
         panel.repaint();
     }
 
-    // ════════════════════════════════════════════════════════════════════
     //  HELPERS
-    // ════════════════════════════════════════════════════════════════════
 
     private void switchTurn() {
         currentTurn = currentTurn.equals("white") ? "black" : "white";

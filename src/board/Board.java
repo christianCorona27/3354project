@@ -39,7 +39,7 @@ public class Board {
         grid = new Piece[8][8];
     }
 
-    // ── Getters / setters ────────────────────────────────────────────────
+    // ── Getters / setters 
 
     public Piece getPiece(int row, int col) { return grid[row][col]; }
     public void  setPiece(int row, int col, Piece piece) { grid[row][col] = piece; }
@@ -63,7 +63,7 @@ public class Board {
     public void setBlackRookA8Moved(boolean v) { blackRookA8Moved = v; }
     public void setBlackRookH8Moved(boolean v) { blackRookH8Moved = v; }
 
-    // ── Board setup ──────────────────────────────────────────────────────
+    // ── Board setup 
 
     /**
      * Sets up the pieces in their starting positions.
