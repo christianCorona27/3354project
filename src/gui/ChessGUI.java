@@ -561,9 +561,15 @@ public class ChessGUI extends JFrame {
                 resetGame();
             } else {
                 // Stalemate
+                String stalemateSide = capitalize(opponent);
+                statusLabel.setText(stalemateSide + " is stalemated  —  Draw");
+                statusLabel.setForeground(new Color(120, 60, 180));
+                refreshBoard(); // show the frozen board before dialog
                 JOptionPane.showMessageDialog(this,
-                        "Stalemate! The game is a draw.",
-                        "Draw", JOptionPane.INFORMATION_MESSAGE);
+                        "⚖  Stalemate!\n\n"
+                        + stalemateSide + " has no legal moves but is not in check.\n"
+                        + "The game is a draw.",
+                        "Stalemate — Draw", JOptionPane.INFORMATION_MESSAGE);
                 resetGame();
             }
             return;
