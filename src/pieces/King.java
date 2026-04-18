@@ -49,6 +49,31 @@ public class King extends Piece {
             }
         }
 
+        // Castling: king has not moved and is on its starting square
+        boolean kingMoved = color.equals("white") ? board.isWhiteKingMoved() : board.isBlackKingMoved();
+        if (!kingMoved && col == 4) {
+            int backRank = color.equals("white") ? 7 : 0;
+            if (row == backRank) {
+
+                // King-side (O-O): squares f and g must be empty, rook on h must not have moved
+                boolean rookHMoved = color.equals("white") ? board.isWhiteRookH1Moved() : board.isBlackRookH8Moved();
+                if (!rookHMoved
+                        && board.getPiece(backRank, 5) == null
+                        && board.getPiece(backRank, 6) == null) {
+                    moves.add(new Position(backRank, 6));
+                }
+
+                // Queen-side (O-O-O): squares b, c, d must be empty, rook on a must not have moved
+                boolean rookAMoved = color.equals("white") ? board.isWhiteRookA1Moved() : board.isBlackRookA8Moved();
+                if (!rookAMoved
+                        && board.getPiece(backRank, 1) == null
+                        && board.getPiece(backRank, 2) == null
+                        && board.getPiece(backRank, 3) == null) {
+                    moves.add(new Position(backRank, 2));
+                }
+            }
+        }
+
         return moves;
     }
 }
