@@ -70,6 +70,18 @@ public class Pawn extends Piece {
                     moves.add(new Position(oneStepRow, rightDiagCol));
                 }
             }
+
+            // En passant: target square is empty but board has an EP target recorded there
+            int epRow = board.getEnPassantRow();
+            int epCol = board.getEnPassantCol();
+            if (epRow == oneStepRow) {
+                if (epCol == leftDiagCol && leftDiagCol >= 0) {
+                    moves.add(new Position(oneStepRow, leftDiagCol));
+                }
+                if (epCol == rightDiagCol && rightDiagCol < 8) {
+                    moves.add(new Position(oneStepRow, rightDiagCol));
+                }
+            }
         }
 
         return moves;
