@@ -67,8 +67,11 @@ java -cp out Main
 - unicode chess pieces
 - customizable board colors
 - adjustable square size
-- Check/checkmate/ stalemate detection
-- Castling
-- Enpassant
+- Check/checkmate detection
 - Pawn Promotion
 
+
+## Not impleneted or not working for some reason (didn't work when I tested might be due to me being bad at the game)
+- stalemate detection
+- Castling
+- Enpassant
