@@ -69,9 +69,6 @@ java -cp out Main
 - adjustable square size
 - Check/checkmate detection
 - Pawn Promotion
-
-
-## Not impleneted or not working for some reason (didn't work when I tested might be due to me being bad at the game)
 - stalemate detection
 - Castling
 - Enpassant
